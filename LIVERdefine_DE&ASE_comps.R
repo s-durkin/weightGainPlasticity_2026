@@ -1,17 +1,3 @@
-#LIVER
-#approach of defining expression differences following Mal's approach, posted on github
-
-#contains the code for making all results data frames for all comparisons, using the design that takes environment into account
-
-#males and females together 
-#liver data only
-
-#started 1.26.26
-
-#3.9.26 change: I was doing my cis test slightly wrong: change to what is outlined by mike love: https://rpubs.com/mikelove/ase, with an exception
-#do not split by "sample" repeated across maternal treatments - this will collapse between treatment variation
-#mainly controlling for factor sizing in cis test because it is ratios, 
-#but keep the NYBZ and BZNY separate test for main cis - trans definition
 
 ############################################################## #
 #### Load and prepare data ####
@@ -330,18 +316,18 @@ names(F1andParent_BZNY_liver)[6]<-paste("int.NYvBZ_padj")
 #merge the results and LogFC columns of the above test files on gene name
 library(plyr)
 merge_results_NYBZ_liver <- join_all(list(parents_NYBZ_liver,NYBZ_ASE_liver,F1andParent_NYBZ_liver), by ="gene", type = 'full')
-merge_results_NYBZ_liver <- na.omit(merge_results_NYBZ_liver) #7679
+merge_results_NYBZ_liver <- na.omit(merge_results_NYBZ_liver) #7679 genes
 
 merge_results_BZNY_liver <- join_all(list(parents_BZNY_liver,BZNY_ASE_liver,F1andParent_BZNY_liver), by ="gene", type = 'full')
-merge_results_BZNY_liver <- na.omit(merge_results_BZNY_liver) #7471
+merge_results_BZNY_liver <- na.omit(merge_results_BZNY_liver) #7471 genes
 
 
 
 
 #### save R data ####
-#this include DE and ASE comparisons
+#this includes DE and ASE comparisons
 
-#save the R environment so this can be loaded for all downstream cis v trans
+#save the R environment so this can be loaded for all downstream cis v trans analyses
 
 save.image(file = "~/Documents/Berkeley/Research/Maternal Effects/Gene Expression/R Scripts/liver_ASE_comps.RData")
 
