@@ -2,6 +2,6 @@
 
 Contains code associated with Durkin et al. 2026: •	Gene regulatory variation underpins maternally plastic and genetic determinants of adaptive body size divergence
 
-"LIVERdefine_DE&ASE_comps.R" contains R code used to define expression comparisons and set up statistical tests to define cis and trans regulation.
+**RNAseq_processing** contains code to process raw RNAseq reads including alignment, filtering, counting reads, and preparation for ASE analysis
 
-"LIVERternary.R" contains R code to quantify and plot the contribution of genetic, environmental, and GxE effects to expression variation.
+**RNAseq_analysis** contains code for liver gene expression analyses performed in R
