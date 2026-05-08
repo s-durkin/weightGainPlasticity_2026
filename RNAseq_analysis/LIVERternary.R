@@ -1,12 +1,7 @@
-#liver ternary plots for displaying G, E, and GxE
+#liver ternary plots for displaying G, E, and GxE (Figure 1F)
 #referring to Ballinger et al. 2023 PNAS github: https://github.com/malballinger/BallingerMack_PNAS_2023/blob/main/code/postprocess_RNAseq/plot_parents_ternary_GxE.R
 
-#males and females together
-#no F1s in this analysis
-#LIVER only
-
-#started 1.26.26
-#using datasets defined in LIVERdefine_DE&ASE_comps.R
+#uses datasets defined in LIVERdefine_DE&ASE_comps.R
 
 
 #### set-up ####
@@ -76,7 +71,7 @@ sig_groups_liver <- mergeall_resGE_liver %>%
 
 
 
-#### ternary plots ####
+#### ternary plot ####
 
 # plot parental expression patterns of parents as a ternary plot
 plot_liver <- ggtern(data = sig_groups_liver, aes(x=g_propvar, y=gxe_propvar, z=e_propvar)) +
@@ -116,67 +111,20 @@ g_liver <- mergeall_resGE_liver %>%
   filter((padj.g < 0.05 & abslfc.g > 0.5) &
            (!gene %in% DESEQ_GxE_list_liver)) # this list is generated above
 n_g_genes_liver <- nrow(g_liver) #3747 at lfc filter of 0.5
-effectsize_g_liver <- g_liver %>% summarise(effectsize = mean(abslfc.g)) #1.34 when log fold change filter is 0.5 (still 1.7x larger - similar to tail, but far fewer sig E genes)
+effectsize_g_liver <- g_liver %>% summarise(effectsize = mean(abslfc.g)) #1.34 when log fold change filter is 0.5 
 
 # How many sig. DEG for env only, with no genotype influence?
 e_liver <- mergeall_resGE_liver %>%
   filter((padj.e < 0.05 & abslfc.e > 0.5) &
            (!gene %in% DESEQ_GxE_list_liver))
-n_e_genes_liver <- nrow(e_liver) #346 when log fold change filter is 0.5 - 224 of these also have a significant G effect...
+n_e_genes_liver <- nrow(e_liver) #346 when log fold change filter is 0.5 
 effectsize_e_liver <- e_liver %>% summarise(effectsize = mean(abslfc.e)) #0.76 when log fold change filter is 0.5
 
 
 
 #effects over all genes, not just those differentially G or E
-effectsizeAll_g_liver <- sig_groups_liver %>% summarise(effectsize = mean(abslfc.g)) #1.25 when log fold change filter is 0.5 (5.5x larger - more than tail, but far fewer sig E genes)
+effectsizeAll_g_liver <- sig_groups_liver %>% summarise(effectsize = mean(abslfc.g)) #1.25 when log fold change filter is 0.5
 effectsizeAll_e_liver <- sig_groups_liver %>% summarise(effectsize = mean(abslfc.e)) #0.229 when log fold change filter is 0.5 
 
 
-
-
-
-#### Regulation of G, E and GxE genes #####
-
-setwd("~/Documents/Berkeley/Research/Maternal Effects/Gene Expression/Transferred Files/")
-#load regulatory modes spreadsheet - contains the cis only regulated genes
-NYBZ.liver_RegulationModes <- read.csv("NYBZ.liver_RegulationModes.csv")
-BZNY.liver_RegulationModes <- read.csv("BZNY.liver_RegulationModes.csv")
-
-#NYBZ
-#merge regulation mode datasets with the significant gene datasets
-sigGenes_NYBZ.liver_RegulationModes <- merge(NYBZ.liver_RegulationModes,sig_groups_liver, by="gene") #1048 of 4224 genes in the sigGroups
-allGenesRegProps_NYBZ <- as.data.frame(prop.table(table(sigGenes_NYBZ.liver_RegulationModes$regulation_mode)) * 100)
-allGenesRegProps_NYBZ$genSet <- "all genes"
-
-#split by being significant in G, E, and GxE (this is not wholly independent as genes can be significant in multiple categories!)
-sigG_NYBZ.liver_RegulationModes <- subset(sigGenes_NYBZ.liver_RegulationModes, padj.g < 0.05 & abslfc.g > 0.5)
-GgenesRegProps_NYBZ <- as.data.frame(prop.table(table(sigG_NYBZ.liver_RegulationModes$regulation_mode)) * 100)
-GgenesRegProps_NYBZ$genSet <- "genetic genes"
-
-sigE_NYBZ.liver_RegulationModes <- subset(sigGenes_NYBZ.liver_RegulationModes, padj.e < 0.05 & abslfc.e > 0.5)
-EgenesRegProps_NYBZ <- as.data.frame(prop.table(table(sigE_NYBZ.liver_RegulationModes$regulation_mode)) * 100)
-EgenesRegProps_NYBZ$genSet <- "environmental genes"
-
-sigGxE_NYBZ.liver_RegulationModes <- subset(sigGenes_NYBZ.liver_RegulationModes, padj.gxe < 0.05 & abslfc.gxe > 0.5)
-GxEgenesRegProps_NYBZ <- as.data.frame(prop.table(table(sigGxE_NYBZ.liver_RegulationModes$regulation_mode)) * 100)
-GxEgenesRegProps_NYBZ$genSet <- "GxE genes"
-
-regPercents_GEGxE_liver <- rbind(allGenesRegProps_NYBZ,GgenesRegProps_NYBZ,EgenesRegProps_NYBZ,GxEgenesRegProps_NYBZ)
-
-#plot it
-library(ggalluvial)
-library(scales)
-
-ggplot(regPercents_GEGxE_liver, aes(fill=factor(Var1, levels = c("cis only", "trans only", "cis + trans", "cis x trans", "compensatory", "conserved")), y=Freq, x=genSet, 
-                              alluvium=factor(Var1, levels = c("cis only", "trans only", "cis + trans", "cis x trans", "compensatory", "conserved")), 
-                              stratum=factor(Var1, levels = c("cis only", "trans only", "cis + trans", "cis x trans", "compensatory", "conserved")))) + 
-  geom_flow(alpha=0.5,width = 0.6)+ geom_stratum(color = "transparent",alpha=0.9, width = 0.6)+
-  geom_text(stat = "stratum",aes(label = percent(after_stat(prop), accuracy = .1)), size = 3) +
-  #scale_fill_manual("Regulation",values = c("#f95738", "#9966cd","#ffae42", "#03c04a")) +
-  scale_x_discrete(limits=c("all genes","genetic genes","environmental genes", "GxE genes"), 
-                   labels = c("all genes","genetic genes","environmental\ngenes", "GxE genes")) + labs(fill = NULL) +
-  theme_bw() + ylab("Proportion of Regulatory Type") + xlab("") + theme(legend.position = "right",
-                                                                        axis.text.x = element_text(face="bold",size =10, colour = 'black'), 
-                                                                        axis.title.y = element_text(face="bold", size =12),
-                                                                        axis.text.y = element_text(size =10, colour = 'black'),)
 
