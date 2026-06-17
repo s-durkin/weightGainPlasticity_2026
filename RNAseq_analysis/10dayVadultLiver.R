@@ -1,15 +1,11 @@
-#cold room experiment liver vs. my experiment liver
-#use NYBZ in my data because i think mal only had NYBZ (but at room temp and cold room)
-#doing this all in males to make things comparable across groups
+#Code to compare Adult SARA & MANA liver expression (Ballinger et al. 2023) to 10-day liver expression of this study
+#Adult data contains individuals reared at cold and warm conditions
 
-#Q1: in terms of regulatory types, is my NYBZ similar to either the cold room or the warm room? I would hope more similar to the cold room but probs not
+#use NYBZ hybrids only, as that is what was analyzed in Ballinger et al. 2023
 
-#Q2: is there variation in fidelity among regulatory types across development? ie. are cis changes more robust across developmental stages? (compare to warm and cold separately)
-    #compare 10day NYBZ reg breakdown to NYBZ cold breakdown and NYBZ warm breakdown (this analysis would also address Q1)
+#use males only, as that is what was analyzed in Ballinger et al. 2023
 
-#Q3: are genes found to be plastic in the cold room similar to those found to be maternal in my experiment? Goal is to confirm the role of temperature
-    #Instead of defining plasticity, could be a correlation between 1) LFC BZ-pure to BZ-CF TO LFC BZ-warm v BZ-cold, 2) LFC NY-pure to NY-CF TO LFC NY-cold v NY-warm
-
+#Contains code for Figure 2G and Supplementary Figure 5
 
 #load libraries 
 library(dplyr)
@@ -40,7 +36,7 @@ liver_countDataM_10day_F1 <- liver_countDataM_10day[ , colnames(liver_countDataM
 liver_metadataM_10day_F1 <- subset(liver_metadataM_10day, pop == "BZNY" | pop == "NYBZ")
 
 
-#read in Mal's data, filter for males
+#read in Ballinger et al. 2023 data, filter for males
 adult_countdata <- read.table('all_parents_counts.txt', header = TRUE, sep = "")
 adult_metadata <- read.table('sampleMatrix_liver.txt', header = TRUE, sep = "")
 #filter metadata for males - sep for F1 and pureline
@@ -59,7 +55,7 @@ adult_countdataM_pure <- adult_countdata[, col_ids %in% as.character(adult_metad
 
 ######################################################################################################################## #
 
-#####PURELINE PLASTICITY ANALYSES######
+#####INITIAL DIFFERENTIAL EXPRESSION######
 
 ######################################################################################################################## #
 
@@ -135,88 +131,9 @@ BZ_coldVwarm_liver_adult <- BZ_coldVwarm_liver_adult %>% dplyr::rename(BZpcoldVw
 
 
 
-#merge BZ and NY datasets to do a scatterplot of lfcs
-liver_mergeNY <- na.omit(merge(NY_pureVcf_liver_10day,NY_coldVwarm_liver_adult, by="row.names"))
-liver_mergeBZ <- na.omit(merge(BZ_cfVpure_liver_10day,BZ_coldVwarm_liver_adult, by="row.names"))
+#### PCA OF ALL SAMPLES ####
 
-#filter merged datasets for only genes that are significantly differentially expressed
-liver_mergeNY_sig <- liver_mergeNY %>% filter(NYpureVcf.padj < 0.05 & NYcoldVwarm.padj < 0.05) #whoa only 49 genes (about 2.7% of sig diff NY 10 day genes - but about a 1/4th of cold v warm)
-liver_mergeBZ_sig <- liver_mergeBZ %>% filter(BZpcfVpure.padj < 0.05 & BZpcoldVwarm.padj < 0.05) #whoa only 58 genes (about 10% of the sig dif 10 day diffs - but 1/6th of all BZ diffs )
-#the differences in expression between cold and warm among BZ and NY are very similar to Mal's numbers
-
-#find separate sig genes
-BZ_cfVpure_liver_10day_sig <- BZ_cfVpure_liver_10day %>% filter(BZpcfVpure.padj < 0.05) #595
-NY_pureVcf_liver_10day_sig <- NY_pureVcf_liver_10day %>% filter(NYpureVcf.padj < 0.05) #1832
-
-BZ_coldVwarm_liver_adult_sig <- BZ_coldVwarm_liver_adult %>% filter(BZpcoldVwarm.padj < 0.05) #830
-NY_coldVwarm_liver_adult_sig <- NY_coldVwarm_liver_adult %>% filter(NYcoldVwarm.padj < 0.05) #204
-
-#ENRICHMENT of plasticity overlap
-
-####enrichmentin sig BZ DEGs
-permSigDEGsOverlap.BZliver <- rep(NA, 10000) 
-genesToDraw10 <- 595 # number of genes that are sig DEGs BZ cf to non cf 10 day liver comparison
-genesToDrawAdult <- 830 # number of genes that are sig DEGs BZ warm to cold adult liver comparison
-
-for(i in 1:length(permSigDEGsOverlap.BZliver)){
-  drawA <- sample(x=as.list(row.names(BZ_cfVpure_liver_10day)), size=genesToDraw10, replace=FALSE)
-  drawB <- sample(x=as.list(row.names(BZ_coldVwarm_liver_adult)), size=genesToDrawAdult, replace=FALSE)
-  permSigDEGsOverlap.BZliver[i] <- length(intersect(drawA, drawB))
-}
-
-permSigDEGsOverlap.BZliver <- as.data.frame(permSigDEGsOverlap.BZliver) #we know the overlap is 58
-prop(~ permSigDEGsOverlap.BZliver >= 58, data = permSigDEGsOverlap.BZliver) #0 - oh!
-#####histogram of simulated distribution
-ggplot(permSigDEGsOverlap.BZliver, aes(x=permSigDEGsOverlap.BZliver)) + geom_histogram(color="black", fill="grey89", binwidth=2) + 
-  labs(x="Expected overlap", y = "Count") + geom_vline(aes(xintercept=58), color="#ce8c14", linetype="dashed", size=2) +
-  theme_classic() +theme(axis.title.x = element_text(face="bold", size =12),
-                         axis.text.x = element_text(size =9, colour = 'black'), 
-                         axis.title.y = element_text(face="bold", size =12),
-                         axis.text.y = element_text(size =9, colour = 'black'))
-
-
-####enrichmentin sig NY DEGs
-permSigDEGsOverlap.NYliver <- rep(NA, 10000) 
-genesToDraw10 <- 1832 # number of genes that are sig DEGs NY cf to non cf 10 day liver comparison
-genesToDrawAdult <- 204 # number of genes that are sig DEGs NY warm to cold adult liver comparison
-
-for(i in 1:length(permSigDEGsOverlap.NYliver)){
-  drawA <- sample(x=as.list(row.names(NY_pureVcf_liver_10day)), size=genesToDraw10, replace=FALSE)
-  drawB <- sample(x=as.list(row.names(NY_coldVwarm_liver_adult)), size=genesToDrawAdult, replace=FALSE)
-  permSigDEGsOverlap.NYliver[i] <- length(intersect(drawA, drawB))
-}
-
-permSigDEGsOverlap.NYliver <- as.data.frame(permSigDEGsOverlap.NYliver) #we know the overlap is 49
-prop(~ permSigDEGsOverlap.NYliver >= 49, data = permSigDEGsOverlap.NYliver) #0 - oh!
-#####histogram of simulated distribution
-ggplot(permSigDEGsOverlap.NYliver, aes(x=permSigDEGsOverlap.NYliver)) + geom_histogram(color="black", fill="grey89", binwidth=2) + 
-  labs(x="Expected overlap", y = "Count") + geom_vline(aes(xintercept=49), color="#006d92", linetype="dashed", size=2) +
-  theme_classic() +theme(axis.title.x = element_text(face="bold", size =12),
-    axis.text.x = element_text(size =9, colour = 'black'), 
-    axis.title.y = element_text(face="bold", size =12),
-    axis.text.y = element_text(size =9, colour = 'black'))
-
-
-
-
-#SCATTERPLOTS of significant diffs
-#correlation between 1) LFC BZ-pure to BZ-CF TO LFC BZ-warm v BZ-cold, 2) LFC NY-pure to NY-CF TO LFC NY-cold v NY-warm
-
-#NY
-ggplot(liver_mergeNY_sig, aes(x = NYpureVcf.lfc, y = NYcoldVwarm.lfc)) + xlab("NY 10 day: pure (NY mom-cold) VS. CF (BZ mom-warm)") +
-  geom_point(shape=21, fill = "#006d92", color = "black", size=2) +theme_bw() + ylab("NY adult: Cold VS. Warm") +
-  geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = -1, label.y = 2.5) #R = 0.02, p = 0.87
-
-#BZ
-ggplot(liver_mergeBZ_sig, aes(x = BZpcfVpure.lfc, y = BZpcoldVwarm.lfc)) + xlab("BZ 10 day: CF (NY mom-cold) VS. pure (BZ mom-warm)") +
-  geom_point(shape=21, fill = "#ce8c14", color = "black", size=2) +theme_bw() +  ylab("BZ adult: Cold VS. Warm") +
-  geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = -1.2, label.y = 2) #R = 0.4, p=0.002 this is sig
-
-
-
-#Get normalized counts for each group separately to correlate
+#Get normalized counts for each group separately 
 
 #first need a combo deseq option with all of our count data to accurately normalize
 adult_10dayCountDataMpure <- na.omit(merge(liver_countDataM_10day_pure,adult_countdataM_pure, by="gene"))
@@ -269,65 +186,6 @@ PCA_plot_all <- ggplot(pca_all_samples_df) + geom_point(aes(x=PC1, y=PC2, color=
         axis.title.y = element_text(face="bold", size =10),
         axis.text.y = element_text(size =8, colour = 'black'))
 PCA_plot_all
-
-PCA_plot_all_2v3 <- ggplot(pca_all_samples_df) + geom_point(aes(x=PC2, y=PC3, color=sample_group, shape = age), size =3, alpha=0.9) +
-  theme_classic() + xlab(percentage_all[2]) + ylab(percentage_all[3]) +
-  theme(legend.position = 'right', 
-        axis.line.x = element_line(colour = 'black', size=0.7, linetype='solid'), 
-        axis.title.x = element_text(face="bold", size =10),
-        axis.text.x = element_text(size =8, colour = 'black'), 
-        axis.line.y = element_line(colour = 'black', size=0.7, linetype='solid'),
-        axis.title.y = element_text(face="bold", size =10),
-        axis.text.y = element_text(size =8, colour = 'black'))
-PCA_plot_all_2v3
-
-PCA_plot_all_2v4 <- ggplot(pca_all_samples_df) + geom_point(aes(x=PC2, y=PC4, color=sample_group, shape = age), size =3, alpha=0.9) +
-  theme_classic() + xlab(percentage_all[2]) + ylab(percentage_all[4]) +
-  theme(legend.position = 'right', 
-        axis.line.x = element_line(colour = 'black', size=0.7, linetype='solid'), 
-        axis.title.x = element_text(face="bold", size =10),
-        axis.text.x = element_text(size =8, colour = 'black'), 
-        axis.line.y = element_line(colour = 'black', size=0.7, linetype='solid'),
-        axis.title.y = element_text(face="bold", size =10),
-        axis.text.y = element_text(size =8, colour = 'black'))
-PCA_plot_all_2v4
-
-
-#base mean correlations - these are same in both because basemean is taken from the all adult and all 10day deseqs
-#NY - 10day cold v adult cold
-ggplot(base_means_adult10day, aes(x = NY_Cold_10day, y = NY_Cold_adult)) + scale_y_continuous(limits = c(0,100000)) +scale_x_continuous(limits = c(0,100000)) + 
-  geom_point(shape=21, fill = "#006d92", color = "black") +theme_bw() + geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = 1, label.y = 100000) #R = 0.76, very sig
-#NY - 10day cold v adult warm (should be less than above)
-ggplot(base_means_adult10day, aes(x = NY_Cold_10day, y = NY_Warm_adult)) + scale_y_continuous(limits = c(0,100000)) +scale_x_continuous(limits = c(0,100000)) + 
-  geom_point(shape=21, fill = "#006d92", color = "black") +theme_bw() + geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = 1, label.y = 100000) #R = 0.77, very sig - not shocking
-#BZ - 10day cold v adult cold
-ggplot(base_means_adult10day, aes(x = BZ_Cold_10day, y = BZ_Cold_adult)) + scale_y_continuous(limits = c(0,100000)) +scale_x_continuous(limits = c(0,100000)) + 
-  geom_point(shape=21, fill = "#ce8c14", color = "black") +theme_bw() + geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = 1, label.y = 100000) #R = 0.77, very sig
-#BZ - 10day cold v adult warm (should be less than above)
-ggplot(base_means_adult10day, aes(x = BZ_Cold_10day, y = BZ_Warm_adult)) + scale_y_continuous(limits = c(0,100000)) +scale_x_continuous(limits = c(0,100000)) + 
-  geom_point(shape=21, fill = "#ce8c14", color = "black") +theme_bw() + geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = 1, label.y = 100000) #R = 0.78, very sig - not shocking
-#BZ v NY - 10day BZ cold to NY adult cold (just seeing if everything is just really correlated)
-ggplot(base_means_adult10day, aes(x = BZ_Cold_10day, y = NY_Cold_adult)) + scale_y_continuous(limits = c(0,100000)) +scale_x_continuous(limits = c(0,100000)) + 
-  geom_point(shape=21, fill = "#006d92", color = "black") +theme_bw() + geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = 1, label.y = 100000) #R = 0.77, its just that liver expression is liver expression
-#BZ v NY - 10day BZ warm to NY adult cold (just seeing if everything is just really correlated, because this is the most polar comp)
-ggplot(base_means_adult10day, aes(x = BZ_Warm_10day, y = NY_Cold_adult)) + scale_y_continuous(limits = c(0,100000)) +scale_x_continuous(limits = c(0,100000)) + 
-  geom_point(shape=21, fill = "#006d92", color = "black") +theme_bw() + geom_smooth(method = "lm", se = TRUE, color = "grey", linetype = "solid") +
-  stat_cor(method = "pearson", label.x = 1, label.y = 100000) #R = 0.75, its just that liver expression is liver expression
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -530,7 +388,7 @@ parents_NYBZcold_liver$gene <- rownames(parents_NYBZcold_liver)
 parents_NYBZcold_liver <- subset(parents_NYBZcold_liver, gene %in% NYBZcold_ASE_liver$gene) #5437
 names(parents_NYBZcold_liver)[2]<-paste("parent.NYvBZcold_Log2FC")
 names(parents_NYBZcold_liver)[6]<-paste("parent.NYvBZcold_padj")
-#numbers of diff exp here similar to Mal's paper
+
 
 
 #### Trans component using LRT
@@ -585,15 +443,12 @@ library(plyr)
 merge_results_NYBZwarm_liverAdult <- na.omit(join_all(list(parents_NYBZwarm_liver,NYBZwarm_ASE_liver,F1andParent_NYBZwarm_liver), by ="gene", type = 'full'))
 merge_results_NYBZcold_liverAdult <- na.omit(join_all(list(parents_NYBZcold_liver,NYBZcold_ASE_liver,F1andParent_NYBZcold_liver), by ="gene", type = 'full'))
 
-#
 
 
 
 
 
 ##### 10 day define cis and trans #####
-
-#only doing NYBZ because that is what Mal has
 
 #main dataset is "merge_results_NYBZ_liver10day"
 
@@ -710,19 +565,13 @@ write.csv(NYBZcold.liverAdult_RegulationModes, "~/Documents/Berkeley/Research/Ma
 
 ######## 10 day to Adult Regulation Alluvials #######
 
-#Q1: in terms of regulatory types, is my NYBZ similar to either the cold room or the warm room? I would hope more similar to the cold room but probs not
-
-#Q2: is there variation in fidelity among regulatory types across development? ie. are cis changes more robust across developmental stages? (compare to warm and cold separately)
-#compare 10day NYBZ reg breakdown to NYBZ cold breakdown and NYBZ warm breakdown (this analysis would also address Q1)
-
-
 
 #10 day to Adult cold
 
 #all genes in regulatory data - because there is less agreement across datasets here, I am going to filter out NA versus changing them to conserved
 Adult10day_merge_cold <- dplyr::full_join(NYBZ.liver10day_RegulationModes,NYBZcold.liverAdult_RegulationModes, by = "gene") %>%
   select("gene", "category_NYBZ10day" = "regulation_mode.x", "category_NYBZcold" = "regulation_mode.y") %>% #just get the columns we care about
-  drop_na() #1473 with NA removed
+  drop_na() 
 
 #add a column that contains the regulatory type for both hybrid comparisons
 Adult10day_merge_cold$both <- paste(Adult10day_merge_cold$category_NYBZ10day, Adult10day_merge_cold$category_NYBZcold, sep="_")
@@ -756,7 +605,7 @@ Adult10day_cold_alluvial
 #all genes in regulatory data - because there is less agreement across datasets here, I am going to filter out NA versus changing them to conserved
 Adult10day_merge_warm <- dplyr::full_join(NYBZ.liver10day_RegulationModes,NYBZwarm.liverAdult_RegulationModes, by = "gene") %>%
   select("gene", "category_NYBZ10day" = "regulation_mode.x", "category_NYBZwarm" = "regulation_mode.y") %>% #just get the columns we care about
-  drop_na() #1473 with NA removed
+  drop_na()
 
 #add a column that contains the regulatory type for both hybrid comparisons
 Adult10day_merge_warm$both <- paste(Adult10day_merge_warm$category_NYBZ10day, Adult10day_merge_warm$category_NYBZwarm, sep="_")
@@ -783,47 +632,4 @@ Adult10day_warm_alluvial <- Adult10day_merge_warm_formatted %>%
         axis.title.y = element_text(face="bold", size =11),
         axis.text.y = element_text(size =8, colour = 'black'))
 Adult10day_warm_alluvial
-
-
-
-#Alluvials of just genes that are cis only or trans only in both
-#acutally that isnt informative because most just goes to conserved and you can clearly see the big cis block in both
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
