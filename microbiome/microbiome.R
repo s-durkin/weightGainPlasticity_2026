@@ -1,10 +1,9 @@
 ##Fecal microbiome analyses from CF and non-CF SARA and MANA mice
 
-#we have species level and genus level data - but will focus on genus level as it is more reliable
-#the species level is a mess...didnt really work
+#Contains all microbiome analyses including the code to make all panels in Figure 4
 
 
-#set up
+#load libraries
 library(ggplot2)
 library(dplyr)
 library(DESeq2)
@@ -21,7 +20,7 @@ genus_counts <- genus_counts[,-1]
 #filter genera for a total count across samples greater than 10 and being prevalent in at least 4 samples (same size as an experimental group)
 genus_counts_filt <- genus_counts %>% filter(rowSums(genus_counts >= 10) >= 4) #37 genera represented
 
-#construct metadata table
+#load metadata table
 metadata <- read.csv("microbiome_metadata.csv")
 
 #filter data and metadata for pups only
@@ -72,8 +71,8 @@ paletteGroup <- c("#ce8c14","#f2cd8b", "#006d92", "#7fbcd1")
 ggplot(all_pca_df, aes(PC1, PC2, color = group, shape = age)) +geom_point(size = 4) +scale_color_manual(values=paletteAll)+
   theme_bw() + xlab(paste0("PC1 (", all_percent_var[1], "%)")) + ylab(paste0("PC2 (", all_percent_var[2], "%)"))
 
-#pups only - definitely cleaner grouping than the Epi2me based analysis - add in driving taxa (sig diff abundance between rearing OR pop - done below)
-#add the significant taxa
+#pups only 
+#add the significantly differentially abundant taxa as loadings (defined in DESeq analysis below)
 loadings <- as.data.frame(pup_pca_res$rotation)
 loadings$Taxon <- rownames(loadings)
 sig_taxa <- c("Lactobacillus","Klebsiella","HT002","Anaerostipes","Tyzzerella","Anaeroplasma", "Blautia", "Faecalimonas","Butyribacter","Bacteroides")
@@ -83,7 +82,7 @@ loadings_sig <- loadings[loadings$Taxon %in% sig_taxa, ]
 loadings_sig$PC1 <- loadings_sig$PC1 * 10
 loadings_sig$PC2 <- loadings_sig$PC2 * 10
 
-#plot
+#pup only plot
 ggplot(pup_pca_df, aes(PC1, PC2, color = group, fill=group)) +scale_color_manual(values = paletteGroup) +scale_fill_manual(values = paletteGroup) +
   xlab(paste0("PC1 (", pup_percent_var[1], "%)")) +ylab(paste0("PC2 (", pup_percent_var[2], "%)")) +
   geom_segment(data = loadings_sig,aes(x = 0, y = 0, xend = PC1, yend = PC2),inherit.aes = FALSE,arrow = arrow(length = unit(0.2, "cm")),color = "grey70") +# arrows
@@ -127,6 +126,7 @@ pcoa_pups_df <- merge(pcoa_pups_df, pup_metadata, by = "id")
 
 #plot
 ggplot(pcoa_pups_df, aes(Axis.1, Axis.2, color = group, shape = fosterStatus))+geom_point(size = 4) + scale_color_manual(values=paletteGroup)+theme_bw()
+
 
 #boxplot of bray-curtis dissimilarilty
 bc_mat <- as.matrix(dist_mat)
@@ -179,9 +179,6 @@ res_NYVBZCF <- as.data.frame(results(dds_pupMicro_group, contrast = c("group", "
 res_BZCFVBZ <- as.data.frame(results(dds_pupMicro_group, contrast = c("group", "BZBZ-CF", "BZBZ"))) # neg LFC = higher in BZ 
 res_NYCFvsBZ <- as.data.frame(results(dds_pupMicro_group, contrast = c("group", "NYNY-CF", "BZBZ"))) # neg LFC = higher in BZ 
 
-#Lactobacillus is the highest differential in rearing and NYvNYCF - it just isnt present in NY-CF or BZ pups - similarly it is not in BZ dams but is high in NY dams
-ggplot(plotCounts(dds_pupMicro_group, gene = "Lactobacillus", intgroup = "group", returnData=TRUE), aes(x=group, y=count, color=group)) +scale_color_manual(values=paletteGroup)+
-  geom_point(position=position_jitter(w=0.1,h=0), size=2) + ggtitle("Lactobacillus abundance") + theme_bw() #related to cholesterol
 
 
 
@@ -243,8 +240,7 @@ ggplot(plot_pup_rel2, aes(x = id, y = Abundance, fill = Taxon2)) +geom_bar(stat 
 metadata$Shannon <- diversity(all_rel, index = "shannon")
 # Simpson
 metadata$Simpson <- diversity(all_rel, index = "simpson")
-# Richness (presence/absence)
-metadata$Richness <- specnumber(all_rel > 0)
+
 
 #subset pups here
 pups_div <- subset(metadata, age == "pup")
@@ -254,33 +250,13 @@ anova(lm(Shannon ~ pop + rearingDam, data = pups_div)) #NS
 anova(lm(Shannon ~ group, data = pups_div)) #NS
 #Tukey post-hoc test
 fit_pupShannon <- aov(Shannon ~ group, data = pups_div)
-TukeyHSD(fit_pupShannon) 
-#plot
-ggplot(pups_div, aes(x = group, y = Shannon, color=group)) +geom_boxplot() +geom_jitter(width = 0.1) +
-  stat_compare_means(comparisons = list(c("BZBZ", "BZBZ-CF"), c("NYNY", "NYNY-CF"), c("BZBZ", "NYNY")), label = "p.format", size=3)+ 
-  scale_color_manual(values=paletteGroup)+theme_bw() #pvalues are a little higher in the correct statistical test above
+TukeyHSD(fit_pupShannon)  #NS
 
 anova(lm(Simpson ~ pop + rearingDam, data = pups_div)) #NS
 anova(lm(Simpson ~ group, data = pups_div)) #NS
 #Tukey post-hoc test
 fit_pupSimpson <- aov(Simpson ~ group, data = pups_div)
 TukeyHSD(fit_pupSimpson) 
-#plot
-ggplot(pups_div, aes(x = group, y = Simpson, color=group)) +geom_boxplot() +geom_jitter(width = 0.1) +
-  stat_compare_means(comparisons = list(c("BZBZ", "BZBZ-CF"), c("NYNY", "NYNY-CF"), c("BZBZ", "NYNY")), label = "p.format", size=3)+ 
-  scale_color_manual(values=paletteGroup)+theme_bw() #pvalues are a little higher in the correct statistical test above
-
-anova(lm(Richness ~ pop + rearingDam, data = pups_div)) #p=0.01457
-anova(lm(Richness ~ group, data = pups_div)) #p=0.01117
-#Tukey post-hoc test
-fit_pupRich <- aov(Richness ~ group, data = pups_div)
-TukeyHSD(fit_pupRich) 
-#the only different one is NYNY-BZBZ (NY more rich)...not any CF, those are 0.06 p values though (NYNY-CF-NYNY and NYNY-BZBZ-CF)
-
-#plot this
-ggplot(pups_div, aes(x = group, y = Richness, color=group)) +geom_boxplot() +geom_jitter(width = 0.1) +
-  stat_compare_means(comparisons = list(c("BZBZ", "BZBZ-CF"), c("NYNY", "NYNY-CF"), c("BZBZ", "NYNY")), label = "p.format", size=3, method = "t.test")+ 
-  scale_color_manual(values=paletteGroup)+theme_bw() #pvalues are a little higher in the correct statistical test above
 
 
 #test in dams v pups
@@ -290,52 +266,7 @@ anova(lm(Shannon ~ plot_group, data = metadata)) #NS
 anova(lm(Simpson ~ age, data = metadata)) #p=0.03675
 anova(lm(Simpson ~ plot_group, data = metadata)) #NS
 
-anova(lm(Richness ~ age, data = metadata)) #p=0.0003386
-anova(lm(Richness ~ plot_group, data = metadata)) #p=2.038e-05
-#Tukey post-hoc test
-fit_allRich <- aov(Richness ~ plot_group, data = metadata)
-TukeyHSD(fit_allRich) 
-#dam to pup are mostly all different and NYdam is diff from BZdam (NY more rich)
 
 
 
 
-
-#### F:B ratio ####
-#the Firmicutes/Bacteroidetes (F/B) ratio is commonly cited as a marker of obesity/weight gain
-#these are different phyla so we will have to group our represented genera to assess this
-
-firmicutes_genera <- c("Marvinbryantia", "Staphylococcus", "Enterococcus","Acutalibacter", "Paludicola", "Lachnoclostridium",
-  "Tyzzerella", "Blautia", "Agathobaculum", "Anaerotruncus", "Limosilactobacillus", "Oscillibacter","Lactobacillus", 
-  "Acetitomaculum", "Faecalimonas", "Roseburia", "Colidextribacter", "Ligilactobacillus","Streptococcus", "Anaerostipes", "Butyribacter")
-bacteroidetes_genera <- c("Muribaculum", "Bacteroides", "Rikenella","Alistipes", "Odoribacter")
-
-#count and calculate ratio
-firm_counts <- colSums(genus_counts_filt[firmicutes_genera, , drop = FALSE])
-bact_counts <- colSums(genus_counts_filt[bacteroidetes_genera, , drop = FALSE])
-
-fb_ratio <- firm_counts / bact_counts
-
-#integrate into metadata
-metadata$FB_ratio <- fb_ratio[match(metadata$id, names(fb_ratio))]
-
-#statistically test
-anova(lm(FB_ratio ~ pop + rearingDam, data = subset(metadata, age=="pup"))) #both are sig, pop more so
-anova(lm(FB_ratio ~ group, data = subset(metadata, age=="pup"))) #p=0.003365
-#Tukey post-hoc test
-fit_pupFB <- aov(Richness ~ group, data = subset(metadata, age=="pup"))
-TukeyHSD(fit_pupFB) #higher in our NYNY mice, but this is statistically not different from NYNY-CF (BUT p=0.069), but it is significantly higher than BZBZ
-
-#plot the F:B ratio per group
-ggplot(metadata, aes(x = group, y = FB_ratio, color=group)) + geom_boxplot() +geom_jitter(width = 0.1) +theme_bw()
-
-ggplot(subset(metadata, age == "pup"), aes(x = group, y = FB_ratio, color=group)) +geom_boxplot() +geom_jitter(width = 0.1) +
-  stat_compare_means(comparisons = list(c("BZBZ", "BZBZ-CF"), c("NYNY", "NYNY-CF"), c("BZBZ", "NYNY"),c("BZBZ", "NYNY-CF")), label = "p.format", size=3)+ 
-  scale_color_manual(values=paletteGroup)+theme_bw()
-#muuuuch higher in our NYNY mice, but this is statistically not different from NYNY-CF (BUT p=0.057), but it is significantly higher than BZBZ
-
-
-
-
-
-#similarly to Richness, F:B is highest in NYNY mice, which is significantly higher than BZBZ, and substantially but not significantly higher than the NYNY-CF counterpart (p~0.06 for both)
