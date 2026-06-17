@@ -10,4 +10,4 @@
 
 **NYBZvBZNY_regulatoryTypes.R** contains analyses to compare regulatory categories determined in reciprocal F1 hybrids and generate associated plots. Figure 2F.
 
-**matLiver_WGCNA.R** contains code to perform WGCNA analysis in MANA maternally controlled genes and generate associated plots. Figure 3 and Supplementary Figure 6.
+**matLiver_WGCNA.R** contains code to perform WGCNA analysis in MANA maternally controlled genes and generate associated plots. Figure 3 and Supplementary Figures 6 & 7.
