@@ -1,4 +1,5 @@
 #liver ternary plots for displaying G, E, and GxE (Figure 1F)
+
 #referring to Ballinger et al. 2023 PNAS github: https://github.com/malballinger/BallingerMack_PNAS_2023/blob/main/code/postprocess_RNAseq/plot_parents_ternary_GxE.R
 
 #uses datasets defined in LIVERdefine_DE&ASE_comps.R
@@ -65,7 +66,7 @@ sig_groups_liver <- mergeall_resGE_liver %>%
   mutate(g_propvar = (abslfc.g/totalvar),
          e_propvar = (abslfc.e/totalvar),
          gxe_propvar = (abslfc.gxe/totalvar))
-#4296
+#4296 genes
 
 
 
