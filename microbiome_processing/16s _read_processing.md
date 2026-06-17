@@ -1,6 +1,6 @@
 # 16s read processing
 
-##1. Generate fastq files from pod5 files Dorado version 1.4.0
+## 1. Generate fastq files from pod5 files Dorado version 1.4.0
 **Paths**
 ```DORADO=/expanse/lustre/projects/uoa104/sdurkin/dorado-1.4.0-linux-x64/bin/dorado```
 ```WORKDIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/dorado```
@@ -16,21 +16,21 @@
 ```$DORADO basecaller hac "$POD5_DIR" --kit-name SQK-16S114-24 --barcode-both-ends --trim --emit-fastq --output-dir "$OUTDIR"```
 
 
-##2. Subset fastqs to match the smallest sample (50k reads) seqkit version 2.13.0
+## 2. Subset fastqs to match the smallest sample (50k reads) seqkit version 2.13.0
 ```for d in $BASE/barcode*; do
 b=$(basename $d)
 cat $d/*.fastq | seqkit seq -w 0 | seqkit sample -n 50000 > $OUTDIR/${b}_sub.fastq
 done```
 
 
-##3. Filter subset fastqs for accurate 16S length (1100-1700) seqkit version 2.13.0
+## 3. Filter subset fastqs for accurate 16S length (1100-1700) seqkit version 2.13.0
 ```for f in $INDIR/*_sub.fastq; do
 b=$(basename $f .fastq)
 seqkit seq -m 1100 -M 1700 "$f" > $OUTDIR/${b}.filt.fastq
 done```
 
 
-##4. Alignment based taxonomy using minimap2 version 2.30
+## 4. Alignment based taxonomy using minimap2 version 2.30
 **First download the SILVA 16S database version 138.2**
 ```wget https://ftp.arb-silva.de/current/Exports/SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz
 gunzip SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz```
@@ -52,20 +52,20 @@ samtools index /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reana
 done```
 
 
-**5. Convert bam files to reference taxa counts using samtools version 1.13**
+## 5. Convert bam files to reference taxa counts using samtools version 1.13
 ```for f in /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/minimap_out/*.sorted.bam; do
 b=$(basename "$f" .sorted.bam)
 samtools view -F 4 "$f" | cut -f3 | sort | uniq -c | sort -nr > /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/refcounts/${b}.refcounts.txt
 done```
 
 
-**6. Look up the genus that corresponds to each SILVA reference ID (what is in the refcounts file)**
-#First create a lookup file that contains the genus name for each reference code
+## 6. Look up the genus that corresponds to each SILVA reference ID (what is in the refcounts file)
+**First create a lookup file that contains the genus name for each reference code**
 ```grep "^>" /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/SILVA_138.2_SSURef_NR99_tax_silva.fasta | \
 sed 's/^>//' | \
 awk '{id=$1; $1=""; sub(/^ /,""); print id "\t" $0}' \
 > /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/silva_lookup.tsv```
 
 
-**7. Combine sample abundance values to build a whole abundance matrix (at the genus level)**
+## 7. Combine sample abundance values to build a whole abundance matrix (at the genus level)
 ```awk 'FNR==1{f=FILENAME;sub(/\.genus\.txt$/,"",f);s[++n]=f}{d[$1,f]=$2;t[$1]=1}END{printf"Taxon";for(i=1;i<=n;i++)printf"\t%s",s[i];print"";for(x in t){printf"%s",x;for(i=1;i<=n;i++){y=s[i];printf"\t%s",(d[x,y]?d[x,y]:0)};print""}}' *.genus.txt > genus_abundance_matrix.tsv```
