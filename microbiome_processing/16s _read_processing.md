@@ -51,18 +51,18 @@
 
 
 ## 5. Convert bam files to reference taxa counts using samtools version 1.13
-```for f in /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/minimap_out/*.sorted.bam; do
-b=$(basename "$f" .sorted.bam)
-samtools view -F 4 "$f" | cut -f3 | sort | uniq -c | sort -nr > /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/refcounts/${b}.refcounts.txt
-done```
+```for f in /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/minimap_out/*.sorted.bam; do```\
+```b=$(basename "$f" .sorted.bam)```\
+```samtools view -F 4 "$f" | cut -f3 | sort | uniq -c | sort -nr > /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/refcounts/${b}.refcounts.txt```\
+```done```
 
 
 ## 6. Look up the genus that corresponds to each SILVA reference ID (what is in the refcounts file)
-**First create a lookup file that contains the genus name for each reference code**
-```grep "^>" /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/SILVA_138.2_SSURef_NR99_tax_silva.fasta | \
-sed 's/^>//' | \
-awk '{id=$1; $1=""; sub(/^ /,""); print id "\t" $0}' \
-> /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/silva_lookup.tsv```
+**First create a lookup file that contains the genus name for each reference code:**\
+```grep "^>" /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/SILVA_138.2_SSURef_NR99_tax_silva.fasta |``` \
+```sed 's/^>//' | ```\
+```awk '{id=$1; $1=""; sub(/^ /,""); print id "\t" $0}' ```\
+```> /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/silva_lookup.tsv```
 
 
 ## 7. Combine sample abundance values to build a whole abundance matrix (at the genus level)
