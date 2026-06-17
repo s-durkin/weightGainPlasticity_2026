@@ -1,17 +1,13 @@
-#define regulatory categories (cis v trans) in F1 ASE data, liver only, sexes grouped
+#contains code to define regulatory categories (cis v trans) in F1 ASE data, liver only, sexes grouped
+
+#contains code to make plots in Figures 2B, C, and E, and Supplementary Figure 9
 
 #result dataframe names for each test type
 #P: parent alone wald's test: parents_NYBZ_liver, parents_BZNY_liver
 #H: hybrid alone wald's test: NYBZ_ASE_liver, BZNY_ASE_liver
 #T: trans component LRT test: F1andParent_NYBZ_liver, F1andParent_BZNY_liver
 
-#merge_results_NYBZ_liver and merge_results_BZNY_liver
-
-#started 1.27.26
-
-# 2.10.26 update: removing the third filter level of maternal genes because it removed mom specific expression changes 
-#(required a sig. maternal state DESeq test which reflects genes where both NY mom and BZ mom are driving a difference)
-#also focusing on the 0.5 lfc set of genes
+#Main dataframes are merge_results_NYBZ_liver and merge_results_BZNY_liver
 
 
 
@@ -189,7 +185,6 @@ ggplot(merge_results_BZNY_liver, aes(x=parent.NYvBZ_Log2FC, y=BZNY.NYvBZ_Log2FC)
 
 #### Regulation of maternal and genetic sets ####
 
-#for tail this is done in the TAILmat_vs_gen_2.0 script
 #mat_either_genes_liver and gen_genes_liver object is made in LIVERmat_vs_gen.R
 
 setwd("~/Documents/Berkeley/Research/Maternal Effects/Gene Expression/Transferred Files/")
@@ -221,53 +216,16 @@ BZNYregModes_gen_liver_regProps <- as.data.frame(prop.table(table(BZNYregModes_g
 #cis = 1290/2632 (49.0%), trans = 761/2632 (28.9%), cis + trans = 406/2632 (15.4%), cis x trans = 175/2632 (6.6%)
 
 
-#make a dataframe of the percentages
-regPercents_liver <- data.frame(comparison = c("All genes", "All genes","All genes","All genes","Maternal","Maternal", "Maternal", "Maternal", "Genetic", "Genetic","Genetic","Genetic"),
-                          reg_type = c("cis only", "trans only", "cis + trans", "cis x trans", "cis only", "trans only", "cis + trans", "cis x trans","cis only", "trans only", "cis + trans", "cis x trans"),
-                          reg_percent = c(49.0,28.9,15.4,6.6,  39.2,31.1,21.6,8.1,   53.3,20.3,24.4,2.2))
-
-#plot it
+#plot it!
 library(ggalluvial)
 library(scales)
 
-ggplot(regPercents_liver, aes(fill=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), y=reg_percent, x=comparison, 
-                              alluvium=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), stratum=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")))) + 
-  #geom_col(position="fill", stat="identity", color = 'black',alpha=0.7)  + 
-  geom_flow(alpha=0.5,width = 0.6)+ geom_stratum(color = "transparent",alpha=0.9, width = 0.6)+
-  geom_text(stat = "stratum",aes(label = percent(after_stat(prop), accuracy = .1)), size = 3) +
-  scale_fill_manual("Regulation",values = c("#f95738", "#9966cd","#ffae42", "#03c04a")) +
-  scale_x_discrete(limits=c("All genes","Genetic","Maternal")) +
-  theme_bw() + ylab("Proportion of Regulatory Type") + xlab("") + theme(legend.position = "right",
-                                                                        axis.text.x = element_text(face="bold",size =10, colour = 'black'), 
-                                                                        axis.title.y = element_text(face="bold", size =12),
-                                                                        axis.text.y = element_text(size =10, colour = 'black'))
-
-
-#alluvial plot of both tail and liver tissue, but with the "all genes" category removed because it complicates presentations
-regPercents_bothTissues <- data.frame(comparison = c("Maternal tail","Maternal tail", "Maternal tail", "Maternal tail", "Genetic tail", "Genetic tail","Genetic tail","Genetic tail",
-                                                     "Maternal liver","Maternal liver", "Maternal liver", "Maternal liver", "Genetic liver", "Genetic liver","Genetic liver","Genetic liver"),
-                                      reg_type = c("cis only", "trans only", "cis + trans", "cis x trans","cis only", "trans only", "cis + trans", "cis x trans", 
-                                                   "cis only", "trans only", "cis + trans", "cis x trans","cis only", "trans only", "cis + trans", "cis x trans"),
-                                      reg_percent = c(10.2,57.5,20.5,11.8,   50,15.9,33.1,1, 39.2,31.1,21.6,8.1,   53.3,20.3,24.4,2.2))
-
-ggplot(regPercents_bothTissues, aes(fill=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), y=reg_percent, x=comparison, 
-                              alluvium=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), stratum=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")))) + 
-  geom_flow(data = subset(regPercents_bothTissues, comparison %in% c("Genetic tail", "Maternal tail")),alpha=0.5,width = 0.6)+ 
-  geom_flow(data = subset(regPercents_bothTissues, comparison %in% c("Genetic liver", "Maternal liver")),alpha=0.5,width = 0.6)+ 
-  geom_stratum(color = "transparent",alpha=0.85, width = 0.6)+
-  geom_text(stat = "stratum",aes(label = percent(after_stat(prop), accuracy = .1)), size = 3) +
-  scale_fill_manual("Regulation",values = c("#f95738", "#9966cd","#ffae42", "#03c04a")) +
-  scale_x_discrete(limits=c("Genetic tail","Maternal tail", "Genetic liver", "Maternal liver")) +
-  theme_bw() + ylab("Proportion of Regulatory Type") + xlab("") + theme(legend.position = "right",
-                                                                        axis.text.x = element_text(face="bold",size =10, colour = 'black'), 
-                                                                        axis.title.y = element_text(face="bold", size =12),
-                                                                        axis.text.y = element_text(size =10, colour = 'black'))
-
-
 #separate alluvial plots for NYBZ and BZNY of liver mat and genetic regulatory breakdown
+
 regPercents_NYBZ <- data.frame(comparison = c("Maternal","Maternal", "Maternal", "Maternal", "Genetic", "Genetic","Genetic","Genetic"),
                                 reg_type = c("cis only", "trans only", "cis + trans", "cis x trans","cis only", "trans only", "cis + trans", "cis x trans"),
                                 reg_percent = c(39.2,31.1,21.6,8.1,   53.3,20.3,24.4,2.2))
+
 ggplot(regPercents_NYBZ, aes(fill=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), y=reg_percent, x=comparison, 
                                     alluvium=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), 
                                     stratum=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")))) + 
@@ -281,6 +239,7 @@ ggplot(regPercents_NYBZ, aes(fill=factor(reg_type, levels = c("cis only", "trans
 regPercents_BZNY <- data.frame(comparison = c("Maternal","Maternal", "Maternal", "Maternal", "Genetic", "Genetic","Genetic","Genetic"),
                                reg_type = c("cis only", "trans only", "cis + trans", "cis x trans","cis only", "trans only", "cis + trans", "cis x trans"),
                                reg_percent = c(32.4,28.4,29.7,9.5,   52.8,17.9,27.2,2.1))
+
 ggplot(regPercents_BZNY, aes(fill=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), y=reg_percent, x=comparison, 
                              alluvium=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")), 
                              stratum=factor(reg_type, levels = c("cis only", "trans only", "cis + trans", "cis x trans")))) + 
@@ -292,30 +251,3 @@ ggplot(regPercents_BZNY, aes(fill=factor(reg_type, levels = c("cis only", "trans
                                                                                                                              axis.text.y = element_text(size =10, colour = 'black'))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#finding genes that switch their allele bias between NYBZ and BZNY - could be connected to maternally controlled cis regulation
-
-#cis in both but the sign changes
-library(dplyr)
-shared_cis_liver <- inner_join(cisOnly_BZNY_liver,cisOnly_NYBZ_liver, by="gene") #923 of 1208 and 1290 (74%)
-
-#ope there are none - ok. I guess that's good 
-shared_cis_liver_opposingF1_FCs <- shared_cis_liver[(shared_cis_liver$BZNY.NYvBZ_Log2FC > 0 & shared_cis_liver$NYBZ.NYvBZ_Log2FC < 0) | 
-                                                    (shared_cis_liver$BZNY.NYvBZ_Log2FC < 0 & shared_cis_liver$NYBZ.NYvBZ_Log2FC > 0),]
-
-#looking at similarity of trans effects between teh two hybrids
-shared_trans_liver <- inner_join(transOnly_BZNY_liver,transOnly_NYBZ_liver, by="gene") #420 of 742 and 761 (56%)
