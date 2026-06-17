@@ -7,3 +7,5 @@ Contains code associated with Durkin et al. 2026: Gene regulatory variation unde
 **RNAseq_analysis** contains code for liver gene expression analyses performed in R
 
 **data** contains raw datafiles needed to run analyses
+
+NOTE: These files often refer to SARA as NY/NYNY, MANA as BZ/BZBZ, SARAxMANA hybrids as NYBZ, and MANAxSARA hybrids as BZNY.
