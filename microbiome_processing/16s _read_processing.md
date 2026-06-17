@@ -1,7 +1,7 @@
 # 16s read processing
 
 ## 1. Generate fastq files from pod5 files Dorado version 1.4.0
-**Paths**
+**Paths:** \
 ```DORADO=/expanse/lustre/projects/uoa104/sdurkin/dorado-1.4.0-linux-x64/bin/dorado```
 ```WORKDIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/dorado```
 ```POD5_DIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/Durkin_Gao_16S_032525/16S_032525/20250325_1030_P2S-02450-A_PAW48289_736562e7/pod5```
