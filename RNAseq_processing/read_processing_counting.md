@@ -1,6 +1,6 @@
-## RNAseq read initial processing and counting
+# RNAseq read initial processing and counting
 
-# 1. Quality Filter and Adapter Trimming Using FastP v.0.19.6
+## 1. Quality Filter and Adapter Trimming Using FastP v.0.19.6
 
 ```/expanse/lustre/projects/uoa104/sdurkin/fastp/fastp \```\
         ```-i $seq\_R1_001.fastq.gz \```\
@@ -16,14 +16,14 @@
         ```--length_required=25 \```\
         ```-j $seq\_report.json \```\
         ```-h $seq\_report.html \```\
-        ```-w 2;
+        ```-w 2;```\
 ```mv -v "${seq}_R1_cleaned.fq.gz" "../clean_reads/${seq}_R1_cleaned.fq.gz"```\
 ```mv -v "${seq}_R2_cleaned.fq.gz" "../clean_reads/${seq}_R2_cleaned.fq.gz"```
 
 
-# 2. Align clean reads with STAR v.2.7.11b
+## 2. Align clean reads with STAR v.2.7.11b
 
-**FIRST: Create genome index - GRCm39 build** 
+**FIRST: Create genome index - GRCm39 build** \
 ```STAR --runThreadN 16 \```\
 ```--runMode genomeGenerate \```\
 ```--limitGenomeGenerateRAM 33524399488 \```\
@@ -32,7 +32,7 @@
 ```--sjdbGTFfile /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.110.gtf \```\
 ```--sjdbOverhang 149```
 
-**SECOND: Run STAR**
+**SECOND: Run STAR**\
 ```STAR --runMode alignReads \```\
 ```--runThreadN 16 \```\
 ```--genomeDir /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/STAR_genomedirectory \```\
@@ -44,7 +44,7 @@
 ```--outFileNamePrefix /expanse/lustre/projects/uoa104/sdurkin/mat_effects/mapped_reads/${Sample}```
 
 
-# 3. Count aligned reads with HTSeq v.0.11.0
+## 3. Count aligned reads with HTSeq v.0.11.0
 
 ```htseq-count -f bam \```\
 ```--order=pos \```\
@@ -54,7 +54,7 @@
 ```> /expanse/lustre/projects/uoa104/sdurkin/mat_effects/countdata/${line}.liver.count```
 
 
-# 4. Merge counts with merge_tables.py
+## 4. Merge counts with merge_tables.py
 ```python merge_tables.py all_samples.txt > all_samples_counts.txt```
 
 
