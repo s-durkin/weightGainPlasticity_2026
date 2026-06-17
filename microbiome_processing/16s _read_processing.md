@@ -2,54 +2,52 @@
 
 ## 1. Generate fastq files from pod5 files Dorado version 1.4.0
 **Paths:** \
-```DORADO=/expanse/lustre/projects/uoa104/sdurkin/dorado-1.4.0-linux-x64/bin/dorado```
-```WORKDIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/dorado```
-```POD5_DIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/Durkin_Gao_16S_032525/16S_032525/20250325_1030_P2S-02450-A_PAW48289_736562e7/pod5```
-```OUTDIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/dorado/dorado_out```
+```DORADO=/expanse/lustre/projects/uoa104/sdurkin/dorado-1.4.0-linux-x64/bin/dorado```\
+```WORKDIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/dorado```\
+```POD5_DIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/Durkin_Gao_16S_032525/16S_032525/20250325_1030_P2S-02450-A_PAW48289_736562e7/pod5```\
+```OUTDIR=/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/dorado/dorado_out```\
 
-**Setup**
-```cd "$WORKDIR" || exit 1```
-```mkdir -p dorado_logs "$OUTDIR"```
-```export OMP_NUM_THREADS=8```
+**Setup:**\
+```cd "$WORKDIR" || exit 1```\
+```mkdir -p dorado_logs "$OUTDIR"```\
+```export OMP_NUM_THREADS=8```\
 
-**Basecalling + demultiplexing**
+**Basecalling + demultiplexing:**\
 ```$DORADO basecaller hac "$POD5_DIR" --kit-name SQK-16S114-24 --barcode-both-ends --trim --emit-fastq --output-dir "$OUTDIR"```
 
 
 ## 2. Subset fastqs to match the smallest sample (50k reads) seqkit version 2.13.0
-```for d in $BASE/barcode*; do
-b=$(basename $d)
-cat $d/*.fastq | seqkit seq -w 0 | seqkit sample -n 50000 > $OUTDIR/${b}_sub.fastq
-done```
+```for d in $BASE/barcode*; do```\
+```b=$(basename $d)```\
+```cat $d/*.fastq | seqkit seq -w 0 | seqkit sample -n 50000 > $OUTDIR/${b}_sub.fastq```\
+```done```
 
 
 ## 3. Filter subset fastqs for accurate 16S length (1100-1700) seqkit version 2.13.0
-```for f in $INDIR/*_sub.fastq; do
-b=$(basename $f .fastq)
-seqkit seq -m 1100 -M 1700 "$f" > $OUTDIR/${b}.filt.fastq
-done```
+```for f in $INDIR/*_sub.fastq; do```\
+```b=$(basename $f .fastq)```\
+```seqkit seq -m 1100 -M 1700 "$f" > $OUTDIR/${b}.filt.fastq```\
+```done```
 
 
 ## 4. Alignment based taxonomy using minimap2 version 2.30
-**First download the SILVA 16S database version 138.2**
-```wget https://ftp.arb-silva.de/current/Exports/SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz
-gunzip SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz```
+**First download the SILVA 16S database version 138.2:**\
+```wget https://ftp.arb-silva.de/current/Exports/SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz```\
+```gunzip SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz```
 
-**Index SILVA reference using minimap**
-```/expanse/lustre/projects/uoa104/sdurkin/minimap2/minimap2 \
--d silva.mmi \
-SILVA_138.2_SSURef_NR99_tax_silva.fasta```
+**Index SILVA reference using minimap:**\
+```/expanse/lustre/projects/uoa104/sdurkin/minimap2/minimap2 -d silva.mmi SILVA_138.2_SSURef_NR99_tax_silva.fasta```
 
-**Run minimap2!**
-```for f in /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/length_filtered_fastq/*.filt.fastq; do
-b=$(basename "$f" .fastq)
-/expanse/lustre/projects/uoa104/sdurkin/minimap2/minimap2 -t 8 -ax map-ont \
-/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/silva.mmi \
-"$f" | \
-samtools view -bS - | \
-samtools sort -o /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/minimap_out/${b}.sorted.bam
-samtools index /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/minimap_out/${b}.sorted.bam
-done```
+**Run minimap2!**\
+```for f in /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/length_filtered_fastq/*.filt.fastq; do```\
+```b=$(basename "$f" .fastq)```\
+```/expanse/lustre/projects/uoa104/sdurkin/minimap2/minimap2 -t 8 -ax map-ont``` \
+```/expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/reference/silva.mmi``` \
+```"$f" |``` \
+```samtools view -bS - |``` \
+```samtools sort -o /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/minimap_out/${b}.sorted.bam```\
+```samtools index /expanse/lustre/projects/uoa104/sdurkin/micro_nanopore/2026_reanalysis/minimap_out/${b}.sorted.bam```\
+```done```
 
 
 ## 5. Convert bam files to reference taxa counts using samtools version 1.13
