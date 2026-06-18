@@ -19,35 +19,35 @@
 ## 2. Separate the aligned bams into population specific pools based on genotype in the phased VCF
 ### Grep for passing WASP filtering (vW tag) and Grep for the appropriate vA:B tag (the allele tag denoting which allele the read maps to). NY reads are vA 1, BZ reads are vA 2**
 
-**Command for NY/SARA reads**
+**Command for NY/SARA reads**\
 A.```samtools view ${Sample}_F1remapAligned.sortedByCoord.out.bam | grep "vW:i:1" | grep "vA:B:c,1"  | awk -F' ' '{if($18 ~ /2/){}else{print}}' > ${Sample}_F1remapAligned.sortedByCoord.NYreads.txt``` \
 B.```samtools view -H ${Sample}_F1remapAligned.sortedByCoord.out.bam > ${Sample}.header.txt``` \
 C.```cat ${Sample}.header.txt ${Sample}_F1remapAligned.sortedByCoord.NYreads.txt > ${Sample}_F1remapAligned.sortedByCoord.NYreads.bam``` 
 <br><br>
-**Command for BZ/MANA reads**
+**Command for BZ/MANA reads**\
 A. ```samtools view ${Sample}_F1remapAligned.sortedByCoord.out.bam | grep "vW:i:1" | grep "vA:B:c,2" | awk -F' ' '{if($18 ~ /1/){}else{print}}' > ${Sample}_F1remapAligned.sortedByCoord.BZreads.txt``` \
 B. ```cat ${Sample}.header.txt ${Sample}_F1remapAligned.sortedByCoord.BZreads.txt > ${Sample}_F1remapAligned.sortedByCoord.BZreads.bam``` 
 
 
 
 ## 3. Sort and index read separate bam files with samtools
-**Command for NY/SARA reads**
+**Command for NY/SARA reads**\
 A. ```samtools sort ${Sample}_F1remapAligned.sortedByCoord.NYreads.bam -o ${Sample}_F1remapAligned.NYreads.sorted.bam``` \
 B. ```samtools index ${Sample}_F1remapAligned.NYreads.sorted.bam```
 <br><br>
-**Command for BZ/MANA reads**
+**Command for BZ/MANA reads**\
 A. ```samtools sort ${Sample}_F1remapAligned.sortedByCoord.BZreads.bam -o ${Sample}_F1remapAligned.BZreads.sorted.bam``` \
 B. ```samtools index ${Sample}_F1remapAligned.BZreads.sorted.bam```
 
 
 
 ## 4. Count population specific F1 bam files with HTSeq v.0.11.0
-**Command for NY/SARA reads**
+**Command for NY/SARA reads**\
 ```htseq-count -f bam --order=pos --stranded=no ${Sample}_F1remapAligned.NYreads.sorted.bam ```\
 ```/expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.110.gtf ```\
 ```> /expanse/lustre/projects/uoa104/sdurkin/mat_effects/F1_ASE_counts/${Sample}.NYreads.count```
 <br><br>
-**Command for BZ/MANA reads**
+**Command for BZ/MANA reads**\
 ```htseq-count -f bam --order=pos --stranded=no ${Sample}_F1remapAligned.BZreads.sorted.bam ```\
 ```/expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.110.gtf ```\
 ```> /expanse/lustre/projects/uoa104/sdurkin/mat_effects/F1_ASE_counts/${Sample}.BZreads.count```
@@ -57,6 +57,6 @@ B. ```samtools index ${Sample}_F1remapAligned.BZreads.sorted.bam```
 ## 5. Merge counts with merge_tables.py
 ```python merge_tables.py F1_ASE_samples.txt > F1_ASE_samples_counts.txt ```
 
-format of 'all_samples.txt': # {Sample}.placers_tissue.count {Sample}_Sex_tissue (ex: BN-10_T-B5_S34.BZreads.count BN-10_M_tail.BZreads)
+
 <br><br>
 This is the input for ASE DESeq analyses
