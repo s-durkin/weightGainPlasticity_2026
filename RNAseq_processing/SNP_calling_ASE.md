@@ -162,16 +162,16 @@ A. ```bcftools filter -e 'FORMAT/FT="isHomRefFilter"' F1s.merged.rawvariants.joi
 B. ```bcftools filter -e 'FORMAT/FT="isHomAltFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRef.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRefAlt.vcf.gz```\
 C. ```bcftools filter -i 'FORMAT/FT="isHetFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRefAlt.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.isHetPASS.vcf.gz```
 <br><br>
-**Filter for missingness**
+**Filter for missingness**\
 ```vcftools --gzvcf F1s.merged.rawvariants.jointGenotyped.SNPs.isHetPASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > F1hetCalls.mm85.vcf.gz```
 
 
 
 ## 14. Merge F1 het VCF and fixed and different pureline VCF and filter for 80% having data
-**Merge**
+**Merge**\
 ```vcf-merge BZ_NY_fixDiff.mm85.vcf.gz F1hetCalls.mm85.vcf.gz | bgzip -c > BZ_NY_FixDiff.F1het.vcf.gz```
 <br><br>
-**Filter for missingness**
+**Filter for missingness**\
 ```vcftools --gzvcf BZ_NY_FixDiff.F1het.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_FixDiff.F1het.mm85.vcf.gz```
 
 
