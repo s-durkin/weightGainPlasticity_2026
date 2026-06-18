@@ -105,23 +105,20 @@
 
 
 ## 10. Select only SNPs with PASS filter status using bcftools
-**Command for pureline samples**\
+**Done for pureline and F1 VCFs separately** \
 ```bcftools view -i 'FILTER="PASS"' pureline.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz``` \
 ```-O z -o pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```
-<br><br>
-**Command for F1 samples**\
-```bcftools view -i 'FILTER="PASS"' F1s.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz``` \
-```-O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```
+
 
 
 
 ## 11. PURELINE SAMPLES ONLY: Create separate BZ and NY VCFs for pureline samples and filter for 10/12 individuals having data
-**Brazil/MANA samples**\
+**Brazil/MANA samples** \
 1. ```bcftools view -s BB-18,BB-19,BB-20,BB-21,BB-75,BB-77,BB-78,BB-79,BB-81,BB-82,BB-83,BB-84 pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz -Oz -o BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
 2. ```tabix BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
 3. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz```
 <br><br>
-**New York/SARA samples**\
+**New York/SARA samples** \
 1. ```bcftools view -s NN-10,NN-12,NN-58,NN-59,NN-61,NN-62,NN-66,NN-67,NN-77,NN-78,NN-80,NN-86 pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz -Oz -o NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
 2. ```tabix NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
 3. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz```
