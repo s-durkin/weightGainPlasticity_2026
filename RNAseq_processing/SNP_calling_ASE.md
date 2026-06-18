@@ -126,26 +126,27 @@ C. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.v
 
 
 ## 12. PURELINE SAMPLES ONLY: Create separate fixed and different VCF files using filtering for hom and ref reciprocally 
-filter the line specific VCFs for fixed hom ref, and fixed hom alt SNPs (two files per line)
-#homozygous alt - tabix after
-vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz
-vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz
+### filter the line specific VCFs for fixed hom ref, and fixed hom alt SNPs (two files per line)
+**homozygous alternative commands**\
+A. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz```
+B. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz```
+<br><br>
+**homozygous reference commands**\
+A. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --max-non-ref-af 0 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz```
+B. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --max-non-ref-af 0 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz```
 
-#homozygous ref - tabix after
-vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --max-non-ref-af 0 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz
-vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --max-non-ref-af 0 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz
+### Merge to create a fixed and different SNP file
+**homozygous alternative in BZ, homozygous reference in NY**\
+A. ```vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz | bgzip -c > BZ_NY_alt.ref.vcf.gz```
+B. ```vcftools --gzvcf BZ_NY_alt.ref.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_alt.ref.mm85.vcf.gz```
+<br><br>
+**homozygous alternative in NY, homozygous reference in BZ**\
+A. ```vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz | bgzip -c > BZ_NY_ref.alt.vcf.gz```
+B. ```vcftools --gzvcf BZ_NY_ref.alt.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_ref.alt.mm85.vcf.gz```
 
-Merge to create a fixed and different SNP file - tabix after
-vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz | bgzip -c > BZ_NY_alt.ref.vcf.gz
-vcftools --gzvcf BZ_NY_alt.ref.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_alt.ref.mm85.vcf.gz
-kept 89478 out of a possible 354301 Sites
 
-vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz | bgzip -c > BZ_NY_ref.alt.vcf.gz
-vcftools --gzvcf BZ_NY_ref.alt.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_ref.alt.mm85.vcf.gz
-kept 66974 out of a possible 312600 Sites
-
-Final merge - just combine them together
-bcftools concat --allow-overlaps BZ_NY_alt.ref.mm85.vcf.gz BZ_NY_ref.alt.mm85.vcf.gz -Oz -o BZ_NY_fixDiff.mm85.vcf.gz
+### Final merge 
+```bcftools concat --allow-overlaps BZ_NY_alt.ref.mm85.vcf.gz BZ_NY_ref.alt.mm85.vcf.gz -Oz -o BZ_NY_fixDiff.mm85.vcf.gz```
 
 
 ## 13. F1 SAMPLES ONLY: Select heterzygous SNPs using GATK VariantFiltration isHet and filter for 20/24 individuals having data
