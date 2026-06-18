@@ -150,33 +150,35 @@ B. ```vcftools --gzvcf BZ_NY_ref.alt.vcf.gz --max-missing 0.85 --recode --recode
 
 
 ## 13. F1 SAMPLES ONLY: Select heterzygous SNPs using GATK VariantFiltration isHet and filter for 20/24 individuals having data
-gatk VariantFiltration \
--V F1s.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz \
--O F1s.merged.rawvariants.jointGenotyped.SNPs.isHet.vcf.gz \
---genotype-filter-name "isHetFilter" --genotype-filter-expression "isHet == 1" \
---genotype-filter-name "isHomRefFilter" --genotype-filter-expression "isHomRef == 1" \
---genotype-filter-name "isHomAltFilter" --genotype-filter-expression "isHomVar == 1"
-Script is F1s_isHetFilter.sh
+```gatk VariantFiltration```\
+```-V F1s.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz``` \
+```-O F1s.merged.rawvariants.jointGenotyped.SNPs.isHet.vcf.gz``` \
+```--genotype-filter-name "isHetFilter" --genotype-filter-expression "isHet == 1"``` \
+```--genotype-filter-name "isHomRefFilter" --genotype-filter-expression "isHomRef == 1"```\
+```--genotype-filter-name "isHomAltFilter" --genotype-filter-expression "isHomVar == 1"```
+<br><br>
+**Select heterozygous SNPs using GATK "isHetFilter" and remove homozygous SNPs**\
+A. ```bcftools filter -e 'FORMAT/FT="isHomRefFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.isHet.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRef.vcf.gz```\
+B. ```bcftools filter -e 'FORMAT/FT="isHomAltFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRef.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRefAlt.vcf.gz```\
+C. ```bcftools filter -i 'FORMAT/FT="isHetFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRefAlt.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.isHetPASS.vcf.gz```
+<br><br>
+**Filter for missingness**
+```vcftools --gzvcf F1s.merged.rawvariants.jointGenotyped.SNPs.isHetPASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > F1hetCalls.mm85.vcf.gz```
 
-Select just the "isHetFilter" snps
-bcftools filter -e 'FORMAT/FT="isHomRefFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.isHet.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRef.vcf.gz
-bcftools filter -e 'FORMAT/FT="isHomAltFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRef.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRefAlt.vcf.gz
-bcftools filter -i 'FORMAT/FT="isHetFilter"' F1s.merged.rawvariants.jointGenotyped.SNPs.noHomRefAlt.vcf.gz -O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.isHetPASS.vcf.gz This step should be redundant
-
-Filter for missingness
-vcftools --gzvcf F1s.merged.rawvariants.jointGenotyped.SNPs.isHetPASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > F1hetCalls.mm85.vcf.gz
-After filtering, kept 67039 out of a possible 72112 Sites
 
 
 ## 14. Merge F1 het VCF and fixed and different pureline VCF and filter for 80% having data
-vcf-merge BZ_NY_fixDiff.mm85.vcf.gz F1hetCalls.mm85.vcf.gz | bgzip -c > BZ_NY_FixDiff.F1het.vcf.gz
-vcftools --gzvcf BZ_NY_FixDiff.F1het.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_FixDiff.F1het.mm85.vcf.gz
-After filtering, kept 63280 out of a possible 160211 Sites
-was more like 25000-30000 for my first F1 project, so much better!
+**Merge**
+```vcf-merge BZ_NY_fixDiff.mm85.vcf.gz F1hetCalls.mm85.vcf.gz | bgzip -c > BZ_NY_FixDiff.F1het.vcf.gz```
+<br><br>
+**Filter for missingness**
+```vcftools --gzvcf BZ_NY_FixDiff.F1het.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_FixDiff.F1het.mm85.vcf.gz```
 
 
 
-## 15. Phase Fix different/F1 het VCF to have  0|1 or 1|0 corresponding to whether the alt is in BZ or NY, respectively 
-This is what we use for WASP
-gunzip -c BZ_NY_FixDiff.F1het.mm85.vcf.gz | awk -F' ' '{if($1 ~ /^#/){}else{print}}' | awk -F' ' '{if( ($10 ~/^1\/1/ || $10 ~/^1\|1/) || ($11 ~/^1\/1/ || $11 ~/^1\|1/) || ($12 ~/^1\/1/ || $12 ~/^1\|1/) || ($13 ~/^1\/1/ || $13 ~/^1\|1/) || ($14 ~/^1\/1/ || $14 ~/^1\|1/) || ($15 ~/^1\/1/ || $15 ~/^1\|1/) || ($16 ~/^1\/1/ || $16 ~/^1\|1/) || ($17 ~/^1\/1/ || $17 ~/^1\|1/)  || ($18 ~/^1\/1/ || $18 ~/^1\|1/)  || ($19 ~/^1\/1/ || $19 ~/^1\|1/)  || ($20 ~/^1\/1/ || $20 ~/^1\|1/) || ($21 ~/^1\/1/ || $21 ~/^1\|1/) ){print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t0|1"}else{print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t1|0"}}' > BZ_NY_FixDiff.F1het.mm85.PHASE.vcf
+
+## 15. Phase the pureline Fixed & Different + F1 heterozygous VCF to have  0|1 or 1|0 corresponding to whether the alt is in BZ or NY, respectively 
+**This will generate the input for WASP**\
+```gunzip -c BZ_NY_FixDiff.F1het.mm85.vcf.gz | awk -F' ' '{if($1 ~ /^#/){}else{print}}' | awk -F' ' '{if( ($10 ~/^1\/1/ || $10 ~/^1\|1/) || ($11 ~/^1\/1/ || $11 ~/^1\|1/) || ($12 ~/^1\/1/ || $12 ~/^1\|1/) || ($13 ~/^1\/1/ || $13 ~/^1\|1/) || ($14 ~/^1\/1/ || $14 ~/^1\|1/) || ($15 ~/^1\/1/ || $15 ~/^1\|1/) || ($16 ~/^1\/1/ || $16 ~/^1\|1/) || ($17 ~/^1\/1/ || $17 ~/^1\|1/)  || ($18 ~/^1\/1/ || $18 ~/^1\|1/)  || ($19 ~/^1\/1/ || $19 ~/^1\|1/)  || ($20 ~/^1\/1/ || $20 ~/^1\|1/) || ($21 ~/^1\/1/ || $21 ~/^1\|1/) ){print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t0|1"}else{print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t1|0"}}' > BZ_NY_FixDiff.F1het.mm85.PHASE.vcf```
+<br><br>
 Asks: if the BZ columns (columns 10-21 have 1/1 genotypes, meaning homozygous for the alt allele, then print the first 9 columns, and then "0|1", if the BZ columns do not have 1/1 (so they will be 0/0) then print "1|0" as the tenth column.
