@@ -17,7 +17,7 @@
 
 
 ## 2. Separate the aligned bams into population specific pools based on genotype in the phased VCF
-### Grep for passing WASP filtering (vW tag) and Grep for the appropriate vA:B tag (the allele tag denoting which allele the read maps to). NY reads are vA 1, BZ reads are vA 2**
+### Grep for passing WASP filtering (vW tag) and Grep for the appropriate vA:B tag (the allele tag denoting which allele the read maps to). NY reads are vA 1, BZ reads are vA 2
 
 **Command for NY/SARA reads**\
 A.```samtools view ${Sample}_F1remapAligned.sortedByCoord.out.bam | grep "vW:i:1" | grep "vA:B:c,1"  | awk -F' ' '{if($18 ~ /2/){}else{print}}' > ${Sample}_F1remapAligned.sortedByCoord.NYreads.txt``` \
