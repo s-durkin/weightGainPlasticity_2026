@@ -128,20 +128,20 @@ C. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.v
 ## 12. PURELINE SAMPLES ONLY: Create separate fixed and different VCF files using filtering for hom and ref reciprocally 
 ### filter the line specific VCFs for fixed hom ref, and fixed hom alt SNPs (two files per line)
 **homozygous alternative commands**\
-A. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz```
+A. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz```\
 B. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz```
 <br><br>
 **homozygous reference commands**\
-A. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --max-non-ref-af 0 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz```
+A. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --max-non-ref-af 0 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz```\
 B. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --max-non-ref-af 0 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz```
 
 ### Merge to create a fixed and different SNP file
 **homozygous alternative in BZ, homozygous reference in NY**\
-A. ```vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz | bgzip -c > BZ_NY_alt.ref.vcf.gz```
+A. ```vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz | bgzip -c > BZ_NY_alt.ref.vcf.gz```\
 B. ```vcftools --gzvcf BZ_NY_alt.ref.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_alt.ref.mm85.vcf.gz```
 <br><br>
 **homozygous alternative in NY, homozygous reference in BZ**\
-A. ```vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz | bgzip -c > BZ_NY_ref.alt.vcf.gz```
+A. ```vcf-merge BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomREF.vcf.gz NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz | bgzip -c > BZ_NY_ref.alt.vcf.gz```\
 B. ```vcftools --gzvcf BZ_NY_ref.alt.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_NY_ref.alt.mm85.vcf.gz```
 
 
