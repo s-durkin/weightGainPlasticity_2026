@@ -2,7 +2,7 @@
 
 
 ## 1. Mark Duplicates with picard version 2.20.8
-**Done for pureline samples and F1 samples**
+**Done for pureline samples and F1 samples**\
 ```java -jar $PICARDHOME/bin/picard.jar MarkDuplicates```\
 ```I=/expanse/lustre/projects/uoa104/sdurkin/mat_effects/mapped_reads/${Sample}Aligned.sortedByCoord.out.bam``` \
 ```O=${Sample}.sortedByCoord.markdups.bam``` \
@@ -11,7 +11,7 @@
 
 
 ## 2. Split N Cigar reads with GATK version 4.2.2.0
-**Done for pureline samples and F1 samples**
+**Done for pureline samples and F1 samples**\
 ```gatk SplitNCigarReads``` \
 ```-R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa``` \
 ```-I ${Sample}.sortedByCoord.markdups.bam``` \
@@ -20,7 +20,7 @@
 
 
 ## 3. Add read groups with with picard version 2.20.8
-**Done for pureline samples and F1 samples**
+**Done for pureline samples and F1 samples**\
 ```java -jar $PICARDHOME/bin/picard.jar AddOrReplaceReadGroups``` \
 ```I=${line1}.sortedByCoord.markdups.split.bam``` \
 ```O=${line1}.sortedByCoord.markdups.RG.split.bam``` \
@@ -30,13 +30,13 @@
 
 
 ## 4. Index with samtools
-**Done for pureline samples and F1 samples**
+**Done for pureline samples and F1 samples**\
 ```samtools index ${FILE}```
 
 
 
 ## 5. Call haplotypes with GATK HaplotypeCaller, version 4.2.2.0
-**Done for pureline samples and F1 samples**
+**Done for pureline samples and F1 samples**\
 ```gatk HaplotypeCaller -R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa``` \
 ```-I ${liver_IND}.sortedByCoord.markdups.RG.split.bam``` \
 ```-ERC GVCF --dont-use-soft-clipped-bases -stand-call-conf 20``` \
@@ -45,7 +45,7 @@
 
 
 ## 6. Combine GVCFs with GATK , version 4.2.2.0
-**Command for pureline samples**
+**Command for pureline samples**\
 ```gatk CombineGVCFs -R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa``` \
 ```--variant BB-18_rawvariants_combo.g.vcf.gz``` \
 ```--variant BB-19_rawvariants_combo.g.vcf.gz``` \
@@ -58,7 +58,7 @@
 ```--variant NN-86_rawvariants_combo.g.vcf.gz``` \
 ```--O pureline.merged.rawvariants.g.vcf```
 <br><br>
-**Command for F1 samples**
+**Command for F1 samples**\
 ```gatk CombineGVCFs -R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa``` \
 ```--variant BN-10_rawvariants_combo.g.vcf.gz``` \
 ```--variant BN-12_rawvariants_combo.g.vcf.gz``` \
@@ -73,56 +73,62 @@
 
 
 ## 7. Genotype GVCFs with GATK , version 4.2.2.0
-gatk GenotypeGVCFs \
--R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa \
---variant pureline.merged.rawvariants.g.vcf \
---O pureline.merged.rawvariants.jointGenotyped.vcf.gz
-Done for pureline and F1 separately
-Steps 7-9 dones in one script: Geno_SNPfilter_pureline.sh and Geno_SNPfilter_F1s.sh
+**Done for pureline and F1 VCFs separately** \
+```gatk GenotypeGVCFs``` \
+```-R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa``` \
+```--variant pureline.merged.rawvariants.g.vcf``` \
+```--O pureline.merged.rawvariants.jointGenotyped.vcf.gz```
+
 
 
 ## 8. Select SNPs with GATK , version 4.2.2.0
-gatk SelectVariants \
--R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa \
---variant pureline.merged.rawvariants.jointGenotyped.vcf.gz \
---select-type-to-include SNP -O pureline.merged.rawvariants.jointGenotyped.SNPs.vcf.gz
-Done for pureline and F1 separately
+**Done for pureline and F1 VCFs separately** \
+```gatk SelectVariants``` \
+```-R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa``` \
+```--variant pureline.merged.rawvariants.jointGenotyped.vcf.gz``` \
+```--select-type-to-include SNP -O pureline.merged.rawvariants.jointGenotyped.SNPs.vcf.gz```
+
 
 
 ## 9. Filter SNPs for high quality with GATK , version 4.2.2.0
-gatk VariantFiltration \
--R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa \
---variant pureline.merged.rawvariants.jointGenotyped.SNPs.vcf.gz \
---filter-name "QD_2" --filter-expression "QD < 2.0" \
---filter-name "FS_60" --filter-expression "FS > 60.0" \
---filter-name "MQ_40" --filter-expression "MQ < 40.0" \
---filter-name "MQRankSum_-12.5" --filter-expression "MQRankSum < -12.5" \
---filter-name "ReadPosRankSum_-8" --filter-expression "ReadPosRankSum < -8.0" \
--O /expanse/lustre/projects/uoa104/sdurkin/mat_effects/snp_calling/cleanvariants/pureline.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz
-Done for pureline and F1 separately
+**Done for pureline and F1 VCFs separately** \
+```gatk VariantFiltration``` \
+```-R /expanse/lustre/projects/uoa104/sdurkin/mus_resources/m39_genome/Mus_musculus.GRCm39.dna.primary_assembly.fa``` \
+```--variant pureline.merged.rawvariants.jointGenotyped.SNPs.vcf.gz``` \
+```--filter-name "QD_2" --filter-expression "QD < 2.0"``` \
+```--filter-name "FS_60" --filter-expression "FS > 60.0"``` \
+```--filter-name "MQ_40" --filter-expression "MQ < 40.0"``` \
+```--filter-name "MQRankSum_-12.5" --filter-expression "MQRankSum < -12.5"``` \
+```--filter-name "ReadPosRankSum_-8" --filter-expression "ReadPosRankSum < -8.0"``` \
+```-O /expanse/lustre/projects/uoa104/sdurkin/mat_effects/snp_calling/cleanvariants/pureline.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz```
+
 
 
 ## 10. Select only SNPs with PASS filter status using bcftools
-bcftools view -i 'FILTER="PASS"' pureline.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz \
--O z -o pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz
-bcftools view -i 'FILTER="PASS"' F1s.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz \
--O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz
-filter_PASS.sh
+**Command for pureline samples**\
+```bcftools view -i 'FILTER="PASS"' pureline.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz``` \
+```-O z -o pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```
+<br><br>
+**Command for F1 samples**\
+```bcftools view -i 'FILTER="PASS"' F1s.merged.rawvariants.jointGenotyped.SNPs.filter.vcf.gz``` \
+```-O z -o F1s.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```
 
 
-## 11. PURELINE: Create separate BZ and NY VCFs for pureline samples and filter for 10/12 individuals having data
-bcftools view -s BB-18,BB-19,BB-20,BB-21,BB-75,BB-77,BB-78,BB-79,BB-81,BB-82,BB-83,BB-84 pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz -Oz -o BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz
-tabix BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz
-vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz
-After filtering, kept 480396 out of a possible 3162791 Sites
 
-bcftools view -s NN-10,NN-12,NN-58,NN-59,NN-61,NN-62,NN-66,NN-67,NN-77,NN-78,NN-80,NN-86 pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz -Oz -o NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz
-tabix NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz
-vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz
-After filtering, kept 458535 out of a possible 3162791 Sites
+## 11. PURELINE SAMPLES ONLY: Create separate BZ and NY VCFs for pureline samples and filter for 10/12 individuals having data
+**Brazil/MANA samples**\
+1. ```bcftools view -s BB-18,BB-19,BB-20,BB-21,BB-75,BB-77,BB-78,BB-79,BB-81,BB-82,BB-83,BB-84 pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz -Oz -o BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
+2. ```tabix BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
+3. ```vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz```
+<br><br>
+**New York/SARA samples**\
+1. ```bcftools view -s NN-10,NN-12,NN-58,NN-59,NN-61,NN-62,NN-66,NN-67,NN-77,NN-78,NN-80,NN-86 pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz -Oz -o NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
+2. ```tabix NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz```\
+3. ```vcftools --gzvcf NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz --max-missing 0.85 --recode --recode-INFO-all --stdout | bgzip -c > NY_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz```
 
 
-## 12. PURELINE: Create separate fixed and different VCF files using filtering for hom and ref reciprocally 
+
+## 12. PURELINE SAMPLES ONLY: Create separate fixed and different VCF files using filtering for hom and ref reciprocally 
 filter the line specific VCFs for fixed hom ref, and fixed hom alt SNPs (two files per line)
 #homozygous alt - tabix after
 vcftools --gzvcf BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.vcf.gz --non-ref-af 1 --recode --recode-INFO-all --stdout | bgzip -c > BZ_pureline.merged.rawvariants.jointGenotyped.SNPs.PASS.mm85.HomALT.vcf.gz
@@ -145,7 +151,7 @@ Final merge - just combine them together
 bcftools concat --allow-overlaps BZ_NY_alt.ref.mm85.vcf.gz BZ_NY_ref.alt.mm85.vcf.gz -Oz -o BZ_NY_fixDiff.mm85.vcf.gz
 
 
-## 13. F1s: Select heterzygous SNPs using GATK VariantFiltration isHet and filter for 20/24 individuals having data
+## 13. F1 SAMPLES ONLY: Select heterzygous SNPs using GATK VariantFiltration isHet and filter for 20/24 individuals having data
 gatk VariantFiltration \
 -V F1s.merged.rawvariants.jointGenotyped.SNPs.PASS.vcf.gz \
 -O F1s.merged.rawvariants.jointGenotyped.SNPs.isHet.vcf.gz \
