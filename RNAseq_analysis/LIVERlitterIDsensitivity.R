@@ -205,8 +205,8 @@ plot_litter_cor <- function(df, title) {
 }
 
 plot_litter_cor(compare_NNvBB, "SARA vs MANA liver")
-plot_litter_cor(compare_NNvNNCF, "SARA vs SARA-CF liver") + coord_cartesian(xlim = c(-4, 4), ylim = c(-4, 4))
-plot_litter_cor(compare_BBCFvBB, "MANA-CF vs MANA liver") + coord_cartesian(xlim = c(-2, 2), ylim = c(-2, 2))
+plot_litter_cor(compare_NNvNNCF, "SARA vs SARA-CF liver")
+plot_litter_cor(compare_BBCFvBB, "MANA-CF vs MANA liver")
 
 
 
