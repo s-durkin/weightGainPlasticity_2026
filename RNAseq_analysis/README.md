@@ -2,7 +2,9 @@
 
 **LIVERdefine_DE&ASE_comps.R** contains code to set up all differential expression and allele-specific expression datasets that are used in downstream analyses.
 
-**LIVERdefine_cis_trans.R** contains code to determine regulatory categories from allele-specfic expression data and generate associated plots. Also includes code to analyze regulatory variation in genetic and maternally controlled sets of genes. Figure 2B-C, E and Supplementary Figure 9. 
+**LIVERdefine_cis_trans.R** contains code to determine regulatory categories from allele-specfic expression data and generate associated plots. Also includes code to analyze regulatory variation in genetic and maternally controlled sets of genes. Figure 2B-C, E and Supplementary Figure 10. 
+
+**LIVERlitterIDsensitivity.R** contains code to run per-litter subsampling analysis and generate associated plots. Supplementary Figure 9.
 
 **LIVERmat_vs_gen.R** contains code to define maternally and genetically controlled expression variation. Figure 2D. 
 
